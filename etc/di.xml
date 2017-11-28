@@ -6,8 +6,6 @@
     <type name="Magento\Framework\Console\CommandList">
         <arguments>
             <argument name="commands" xsi:type="array">
-                <item name="gcsConfigListCommand" xsi:type="object">Google\Cloud\Console\Command\ConfigListCommand</item>
-                <item name="gcsoCnfigSetCommand" xsi:type="object">Google\Cloud\Console\Command\ConfigSetCommand</item>
                 <item name="gcsStorageSyncCommand" xsi:type="object">Google\Cloud\Console\Command\StorageSyncCommand</item>
             </argument>
         </arguments>
