@@ -5,22 +5,14 @@
     "license": "MIT",
 	"authors": [
 		{
-			"name": "Thai Phan",
-			"email": "thai@arkade.com.au"
-		},
-		{
-			"name": "Chad A. Carino",
-			"email": "ccarino@sundialbrands.com"
-		},
-		{
-			"name": "Ramki",
-			"email": "ram10raj@gmail.com"
+			"name": "Lukas Beranek",
+			"email": "beranek.lukas@gmail.com"
 		}
 	  ],    
     "autoload": {
         "files": [ "registration.php" ],
         "psr-4": {
-            "Google\\Cloud\\": ""
+            "Beecom\\GooglecloudStorage\\": ""
         }
     },
     "require": {
