@@ -1,5 +1,5 @@
 <?php
-namespace Beecom\Cloudstorage\Console\Command;
+namespace Beecom\GooglecloudStorage\Console\Command;
 
 use Google\Cloud\Storage\StorageClient;
 use Symfony\Component\Console\Input\InputInterface;
