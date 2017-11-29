@@ -2,7 +2,6 @@
 namespace Beecom\GooglecloudStorage\Helper;
 
 use Beecom\GooglecloudStorage\Model\MediaStorage\File\Storage;
-use Magento\Framework\Encryption\EncryptorInterface,
 
 
 class Data extends \Magento\Framework\App\Helper\AbstractHelper
