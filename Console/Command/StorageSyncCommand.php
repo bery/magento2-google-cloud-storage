@@ -157,7 +157,7 @@ class StorageSyncCommand extends \Symfony\Component\Console\Command\Command
 
             foreach ($recursiveIterator as $fileItem) {
                 /** @var $fileItem \SplFileInfo */
-                if ($recursive && $fileItem->isDir()) {
+                if ($recursive && $fileItem->isDir() && strpos($fileItem->getBasename(),"cache") === false) {
                     $this->uploadDirectory( $fileItem->getRealPath() );
                 }
                 else {
