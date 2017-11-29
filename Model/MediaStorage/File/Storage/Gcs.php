@@ -3,7 +3,8 @@ namespace Beecom\GooglecloudStorage\Model\MediaStorage\File\Storage;
 
 // use Aws\S3\Exception\S3Exception;
 use Magento\Framework\DataObject;
-use Beecom\GooglecloudStorage\ServiceBuilder;
+use Google\Cloud\Storage\StorageClient;
+
 class Gcs extends DataObject
 {
     /**
@@ -42,8 +43,9 @@ class Gcs extends DataObject
     private $logger;
 
 	private $storageFile;
-	
-	
+
+    private $bucket;
+
     private $objects = [];
 
     public function __construct(
@@ -60,18 +62,12 @@ class Gcs extends DataObject
         $this->storageHelper = $storageHelper;
 		$this->storageFile = $storageFile;
         $this->logger = $logger;
-		$this->helper->getAccessKey();
-		$json_key = $this->helper->getAccessKey();
-        $key_array = json_decode( $json_key,true );
-        $project = $key_array['project_id'];
-        //$this->client = new StorageClient([
-        //$gcloud = new \Beecom\GooglecloudStorage\ServiceBuilder(array('projectId'=> $project,'keyFile'=> $json_key));
-        
-        $this->client = new \cAc\GcsWrapper\GoogleCloudStorage(
-				$project,
-        		$json_key,
-        		$this->helper->getBucket()
-        	);
+
+        $this->client =new StorageClient([
+            'projectId' => $this->helper->getProject(),
+            'keyFile' => $this->helper->getAccessKey()
+        ]);
+        $this->bucket = $this->client->bucket($this->helper->getBucket());
     }
 
     /**
@@ -102,10 +98,10 @@ class Gcs extends DataObject
      */
     public function loadByFilename($filename) {
         try {
-        	$object_is = $this->client->object_exists( $filename );
+        	$object_is = $this->bucket->exists( $filename );
         	if( $object_is ) {
         	
-				$object = $this->client->object_download( $location );
+				$object = $this->bucket->object( $filename )->downloadToFile($location);
             
             }
             else {
@@ -118,7 +114,6 @@ class Gcs extends DataObject
                 $this->setData('id', $filename);
                 $this->setData('filename', $filename);
                 $this->setData('content', (string) $contents);
-                //unlink( $filename );
             } else {
                 $fail = true;
             }
@@ -184,30 +179,19 @@ class Gcs extends DataObject
 
     public function importFiles( array $files = [] )
     {
-		
-    	$json_key = $this->helper->getAccessKey();
-        $key_array = json_decode( $json_key,true );
-        $project = $key_array['project_id'];
-        foreach( $files as $file ) {        
+        foreach( $files as $file ) {
             try {
 				$mediaPath = $file['directory'].'/'.$file['filename'];
-                $this->client->bucket_upload_object(
-                	$mediaPath,
-					$this->storageHelper->getMediaBaseDir(),
-                	$file['filename'],
-                	false,
-                	"publicRead"
-                );
+                $options = [
+                    'name' => $mediaPath
+                ];
+                $this->object = $this->bucket->upload( fopen($mediaPath, 'r'), $options );
             } 
             catch (\Exception $e) {
-            
                 $this->errors[] = $e->getMessage();
                 $this->logger->critical($e);
-            
             }
-        
         }
-
         return $this;
     }
 
@@ -220,17 +204,17 @@ class Gcs extends DataObject
 
     public function fileExists($filename)
     {
-//         return $this->client->doesObjectExist($this->getBucket(), $filename);
+         return $this->bucket->object($filename)->exists();
     }
 
     public function copyFile($oldFilePath, $newFilePath)
     {
-        return $this;
+        return $this->bucket->object($oldFilePath)->copy($newFilePath);
     }
 
     public function renameFile($oldFilePath, $newFilePath)
     {
-        return $this;
+        return $this->bucket->object($oldFilePath)->rename($newFilePath);
     }
 
     /**
@@ -239,9 +223,9 @@ class Gcs extends DataObject
      * @param string $path
      * @return $this
      */
-    public function deleteFile($path)
+    public function deleteFile($filePath)
     {
-        return $this;
+        return $this->bucket->delete($filePath);
     }
 
     public function getSubdirectories($path)

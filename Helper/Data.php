@@ -2,6 +2,8 @@
 namespace Beecom\GooglecloudStorage\Helper;
 
 use Beecom\GooglecloudStorage\Model\MediaStorage\File\Storage;
+use Magento\Framework\Encryption\EncryptorInterface,
+
 
 class Data extends \Magento\Framework\App\Helper\AbstractHelper
 {
@@ -16,18 +18,18 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     {
         if (is_null($this->useGCS)) {
             $currentStorage = (int)$this->scopeConfig->getValue(Storage::XML_PATH_STORAGE_MEDIA);
-			if($currentStorage == 2){
-				$this->useGCS = $currentStorage == 0;
-			}else{
-				$this->useGCS = $currentStorage == Storage::STORAGE_MEDIA_GCS;
-			}
+            if($currentStorage == 2){
+                $this->useGCS = $currentStorage == 0;
+            }else{
+                $this->useGCS = $currentStorage == Storage::STORAGE_MEDIA_GCS;
+            }
         }
         return $this->useGCS;
     }
 
     public function getAccessKey()
     {
-        return json_decode($this->scopeConfig->getValue('google_cloud/general/access_key'));
+        return json_decode($this->scopeConfig->getValue('google_cloud/general/access_key'),true);
     }
 
     public function getProject()

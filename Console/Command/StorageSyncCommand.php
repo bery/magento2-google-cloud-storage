@@ -24,14 +24,18 @@ class StorageSyncCommand extends \Symfony\Component\Console\Command\Command
 
     private $storageHelper;
 
+    private $filesystem;
+
     public function __construct(
         \Magento\MediaStorage\Helper\File\Storage\Database $storageHelper,
         \Magento\MediaStorage\Helper\File\Storage $coreFileStorage,
-        \Beecom\GooglecloudStorage\Helper\Data $helper
+        \Beecom\GooglecloudStorage\Helper\Data $helper,
+        \Magento\Framework\Filesystem $filesystem
     ) {
         $this->coreFileStorage = $coreFileStorage;
         $this->helper = $helper;
         $this->storageHelper = $storageHelper;
+        $this->filesystem = $filesystem;
         parent::__construct();
     }
 
@@ -52,7 +56,7 @@ class StorageSyncCommand extends \Symfony\Component\Console\Command\Command
         }
 
         try {
-        	$this->client =new StorageClient([
+            $this->client =new StorageClient([
                 'projectId' => $this->helper->getProject(),
                 'keyFile' => $this->helper->getAccessKey()
             ]);
@@ -68,40 +72,40 @@ class StorageSyncCommand extends \Symfony\Component\Console\Command\Command
 
         $output->writeln(sprintf('Uploading files to use GCS.'));
         if ($this->coreFileStorage->getCurrentStorageCode() == \Beecom\GooglecloudStorage\Model\MediaStorage\File\Storage::STORAGE_MEDIA_FILE_SYSTEM) {
-        
+
             try {
-            
-                $this->client->bucket_upload_directory(
+
+                $this->uploadDirectory(
                     $this->storageHelper->getMediaBaseDir(),
                     false,
                     "publicRead"
                 );
-           
-            } 
-            catch (\Exception $e) {
-            
-                $output->writeln(sprintf('<error>%s</error>', $e->getMessage()));
-            
+
             }
-        
-        } 
+            catch (\Exception $e) {
+
+                $output->writeln(sprintf('<error>%s</error>', $e->getMessage()));
+
+            }
+
+        }
         else {
-        
+
             $sourceModel = $this->coreFileStorage->getStorageModel();
             $destinationModel = $this->coreFileStorage->getStorageModel(\Beecom\GooglecloudStorage\Model\MediaStorage\File\Storage::STORAGE_MEDIA_GCS);
             $offset = 0;
             while (($files = $sourceModel->exportFiles($offset, 1)) !== false) {
-            
+
                 foreach ($files as $file) {
-                
+
                     $output->writeln(sprintf('Uploading %s to use GCS.', $file['directory'] . '/' . $file['filename']));
-               
+
                 }
                 $destinationModel->importFiles($files);
                 $offset += count($files);
-            
+
             }
-        
+
         }
         $output->writeln(sprintf('Finished uploading files to use GCS.'));
 
@@ -130,8 +134,8 @@ class StorageSyncCommand extends \Symfony\Component\Console\Command\Command
             $errors[] = 'You have not provided an GCS access key ID. You can do so using our config script.';
         }
         if (is_null($this->helper->getProject())) {
-             $errors[] = 'You have not provided an GCS Project Number. You can do so using our config script.';
-         }
+            $errors[] = 'You have not provided an GCS Project Number. You can do so using our config script.';
+        }
         if (is_null($this->helper->getBucket())) {
             $errors[] = 'You have not provided an GCS bucket. You can do so using our config script.';
         }
@@ -164,21 +168,10 @@ class StorageSyncCommand extends \Symfony\Component\Console\Command\Command
                             'name' => $relativePath
                         ];
                         $this->object = $this->bucket->upload( fopen($fileItem->getRealPath(), 'r'), $options );
-                        $result = $this->object;
                     }
                     catch( \Exception $e ) {
-
-                        $result = $e;
-                        $this->errors[$this->error_count] = $e->getMessage();
-                        $this->error_count++;
-
+                        print $e;
                     }
-                    if( null != $this->object ) {
-
-                        $this->get_object_acl();
-
-                    }
-
                 }
 
             }
