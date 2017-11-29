@@ -1,5 +1,5 @@
 <?php
-namespace Google\Cloud\Block\MediaStorage\System\Config\System\Storage\Media\Synchronise;
+namespace Beecom\GooglecloudStorage\Block\MediaStorage\System\Config\System\Storage\Media\Synchronise;
 
 class Plugin
 {

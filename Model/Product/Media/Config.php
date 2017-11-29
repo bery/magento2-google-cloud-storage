@@ -1,5 +1,5 @@
 <?php
-namespace Google\Cloud\Model\Product\Media;
+namespace Beecom\GooglecloudStorage\Model\Product\Media;
 class Config extends \Magento\Catalog\Model\Product\Media\Config
 {
     public function getBaseTmpMediaUrl()

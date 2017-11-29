@@ -1,11 +1,11 @@
 <?php
-namespace Google\Cloud\Model\Config\Source;
+namespace Beecom\GooglecloudStorage\Model\Config\Source;
 
 class Region implements \Magento\Framework\Option\ArrayInterface
 {
     private $helper;
 
-    public function __construct(\Google\Cloud\Helper\Gcs $helper)
+    public function __construct(\Beecom\GooglecloudStorage\Helper\Gcs $helper)
     {
         $this->helper = $helper;
     }

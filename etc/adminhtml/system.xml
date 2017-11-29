@@ -10,7 +10,7 @@
             <resource>Google_Cloud::cloud_configuration</resource>
             <group id="general" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>General</label>
-                <field id="access_key" type="text" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="access_key" type="textarea" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Access Key JSON</label>
                     <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
                 </field>
@@ -22,7 +22,7 @@
                 </field>
                 <field id="region" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Region</label>
-                    <source_model>Google\Cloud\Model\Config\Source\Region</source_model>
+                    <source_model>Beecom\GooglecloudStorage\Model\Config\Source\Region</source_model>
                 </field>
             </group>
         </section>

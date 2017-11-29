@@ -1,5 +1,5 @@
 <?php
-namespace Google\Cloud\Helper;
+namespace Beecom\GooglecloudStorage\Helper;
 
 class Gcs
 {

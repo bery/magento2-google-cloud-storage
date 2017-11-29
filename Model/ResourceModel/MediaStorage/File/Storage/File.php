@@ -1,5 +1,5 @@
 <?php
-namespace Google\Cloud\Model\ResourceModel\MediaStorage\File\Storage;
+namespace Beecom\GooglecloudStorage\Model\ResourceModel\MediaStorage\File\Storage;
 
 class File extends \Magento\MediaStorage\Model\ResourceModel\File\Storage\File
 {

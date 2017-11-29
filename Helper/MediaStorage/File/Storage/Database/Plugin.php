@@ -1,5 +1,5 @@
 <?php
-namespace Google\Cloud\Helper\MediaStorage\File\Storage\Database;
+namespace Beecom\GooglecloudStorage\Helper\MediaStorage\File\Storage\Database;
 
 use Magento\MediaStorage\Helper\File\Storage\Database;
 
@@ -14,8 +14,8 @@ class Plugin
     private $storageModel = null;
 
     public function __construct(
-        \Google\Cloud\Helper\Data $helper,
-        \Google\Cloud\Model\MediaStorage\File\Storage\GcsFactory $gcsStorageFactory,
+        \Beecom\GooglecloudStorage\Helper\Data $helper,
+        \Beecom\GooglecloudStorage\Model\MediaStorage\File\Storage\GcsFactory $gcsStorageFactory,
         \Magento\MediaStorage\Model\File\Storage\DatabaseFactory $dbStorageFactory
     ) {
         $this->helper = $helper;

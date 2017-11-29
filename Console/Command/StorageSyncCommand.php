@@ -1,10 +1,12 @@
 <?php
-namespace Google\Cloud\Console\Command;
+namespace Beecom\Cloudstorage\Console\Command;
 
-use Magento\Config\Model\Config\Factory;
+use Google\Cloud\Storage\StorageClient;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Magento\Framework\Filesystem;
+use Magento\Framework\App\Filesystem\DirectoryList;
 
 class StorageSyncCommand extends \Symfony\Component\Console\Command\Command
 {
@@ -16,19 +18,17 @@ class StorageSyncCommand extends \Symfony\Component\Console\Command\Command
 
     private $client;
 
+    private $bucket;
+
     private $coreFileStorage;
 
     private $storageHelper;
 
     public function __construct(
-        \Magento\Framework\App\State $state,
-        Factory $configFactory,
         \Magento\MediaStorage\Helper\File\Storage\Database $storageHelper,
         \Magento\MediaStorage\Helper\File\Storage $coreFileStorage,
-        \Google\Cloud\Helper\Data $helper
+        \Beecom\GooglecloudStorage\Helper\Data $helper
     ) {
-        $this->state = $state;
-        $this->configFactory = $configFactory;
         $this->coreFileStorage = $coreFileStorage;
         $this->helper = $helper;
         $this->storageHelper = $storageHelper;
@@ -52,29 +52,22 @@ class StorageSyncCommand extends \Symfony\Component\Console\Command\Command
         }
 
         try {
-        	$json_key = $this->helper->getAccessKey();
-        	$key_array = json_decode($json_key,true);
-        	$project = $key_array['project_id'];
-        	$this->client = new \cAc\GcsWrapper\GoogleCloudStorage(
-				$project,
-        		$json_key,
-        		$this->helper->getBucket()
-        	);
+        	$this->client =new StorageClient([
+                'projectId' => $this->helper->getProject(),
+                'keyFile' => $this->helper->getAccessKey()
+            ]);
+            $this->bucket = $this->client->bucket($this->helper->getBucket());
         } catch (\Exception $e) {
             $output->writeln(sprintf('<error>%s</error>', $e->getMessage()));
             return;
         }
-        if (!$this->client->bucket_exists()) {
+        if (!$this->bucket->exists()) {
             $output->writeln('<error>The GCS credentials you provided did not work. Please review your details and try again. You can do so using our config script.</error>');
             return;
         }
-        /*if ($this->coreFileStorage->getCurrentStorageCode() == \Google\Cloud\Model\MediaStorage\File\Storage::STORAGE_MEDIA_GCS) {
-            $output->writeln('<error>You are already using GCS as your media file storage backend!</error>');
-            return;
-        }*/
 
         $output->writeln(sprintf('Uploading files to use GCS.'));
-        if ($this->coreFileStorage->getCurrentStorageCode() == \Google\Cloud\Model\MediaStorage\File\Storage::STORAGE_MEDIA_FILE_SYSTEM) {
+        if ($this->coreFileStorage->getCurrentStorageCode() == \Beecom\GooglecloudStorage\Model\MediaStorage\File\Storage::STORAGE_MEDIA_FILE_SYSTEM) {
         
             try {
             
@@ -95,7 +88,7 @@ class StorageSyncCommand extends \Symfony\Component\Console\Command\Command
         else {
         
             $sourceModel = $this->coreFileStorage->getStorageModel();
-            $destinationModel = $this->coreFileStorage->getStorageModel(\Google\Cloud\Model\MediaStorage\File\Storage::STORAGE_MEDIA_GCS);
+            $destinationModel = $this->coreFileStorage->getStorageModel(\Beecom\GooglecloudStorage\Model\MediaStorage\File\Storage::STORAGE_MEDIA_GCS);
             $offset = 0;
             while (($files = $sourceModel->exportFiles($offset, 1)) !== false) {
             
@@ -116,7 +109,7 @@ class StorageSyncCommand extends \Symfony\Component\Console\Command\Command
             $output->writeln('Updating configuration to use GCS.');
             $this->state->setAreaCode('adminhtml');
             $config = $this->configFactory->create();
-            $config->setDataByPath('system/media_storage_configuration/media_storage', \Google\Cloud\Model\MediaStorage\File\Storage::STORAGE_MEDIA_GCS);
+            $config->setDataByPath('system/media_storage_configuration/media_storage', \Beecom\GooglecloudStorage\Model\MediaStorage\File\Storage::STORAGE_MEDIA_GCS);
             $config->save();
             $output->writeln(sprintf('<info>Magento now uses GCS for its file backend storage.</info>'));
         }
@@ -147,5 +140,57 @@ class StorageSyncCommand extends \Symfony\Component\Console\Command\Command
         }
 
         return $errors;
+    }
+
+    public function uploadDirectory($source, $use_validation = false, $permissions = "private", $recursive = true){
+        $result = null;
+        if( is_dir( $source ) ) {
+
+            $recursiveIterator = new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator($source, \FilesystemIterator::FOLLOW_SYMLINKS | \FilesystemIterator::SKIP_DOTS),
+                \RecursiveIteratorIterator::SELF_FIRST
+            );
+
+            foreach ($recursiveIterator as $fileItem) {
+                /** @var $fileItem \SplFileInfo */
+                if ($recursive && $fileItem->isDir()) {
+                    $this->uploadDirectory( $fileItem->getRealPath() );
+                }
+                else {
+                    try {
+                        $mediaDirectory = $this->filesystem->getDirectoryRead(DirectoryList::MEDIA);
+                        $relativePath = $mediaDirectory->getRelativePath($fileItem->getRealPath());
+                        $options = [
+                            'name' => $relativePath
+                        ];
+                        $this->object = $this->bucket->upload( fopen($fileItem->getRealPath(), 'r'), $options );
+                        $result = $this->object;
+                    }
+                    catch( \Exception $e ) {
+
+                        $result = $e;
+                        $this->errors[$this->error_count] = $e->getMessage();
+                        $this->error_count++;
+
+                    }
+                    if( null != $this->object ) {
+
+                        $this->get_object_acl();
+
+                    }
+
+                }
+
+            }
+
+        }
+        else {
+
+            $result = 'This is not a directory.';
+            $this->errors[$this->error_count] = $e->getServiceException()->getMessage();
+            $this->error_count++;
+
+        }
+        return $result;
     }
 }

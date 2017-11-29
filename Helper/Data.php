@@ -1,14 +1,14 @@
 <?php
-namespace Google\Cloud\Helper;
+namespace Beecom\GooglecloudStorage\Helper;
 
-use Google\Cloud\Model\MediaStorage\File\Storage;
+use Beecom\GooglecloudStorage\Model\MediaStorage\File\Storage;
 
 class Data extends \Magento\Framework\App\Helper\AbstractHelper
 {
     private $useGCS = null;
 
     /**
-     * Check whether we are allowed to use S3 as our file storage backend.
+     * Check whether we are allowed to use Google Cloud buckets as our file storage backend.
      *
      * @return bool
      */
@@ -27,7 +27,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 
     public function getAccessKey()
     {
-        return $this->scopeConfig->getValue('google_cloud/general/access_key');
+        return json_decode($this->scopeConfig->getValue('google_cloud/general/access_key'));
     }
 
     public function getProject()

@@ -1,7 +1,7 @@
 <?php
-namespace Google\Cloud\Model\Cms\Wysiwyg\Images\Storage;
+namespace Beecom\GooglecloudStorage\Model\Cms\Wysiwyg\Images\Storage;
 
-use Google\Cloud\Helper\Data;
+use Beecom\GooglecloudStorage\Helper\Data;
 use Magento\Cms\Model\Wysiwyg\Images\Storage;
 use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\MediaStorage\Helper\File\Storage\Database;

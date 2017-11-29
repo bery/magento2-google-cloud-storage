@@ -1,5 +1,5 @@
 <?php
-namespace Google\Cloud\Model\Store\Store;
+namespace Beecom\GooglecloudStorage\Model\Store\Store;
 
 class Plugin
 {
